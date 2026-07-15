@@ -2,6 +2,14 @@
 
 An advanced, high-performance meeting intelligence dashboard that transcribes meeting audio and extracts structured insights, including executive summaries, objectives, key decisions, action-oriented checklists, a discussion timeline, speaker metrics, and an interactive RAG (Retrieval-Augmented Generation) chat assistant.
 
+## 📸 Visual Interface
+
+### 📤 Upload & Initialization Screen
+![Upload Screen](assets/screenshot1.png)
+
+### 📊 Dashboard Analysis & Speaker Metrics
+![Dashboard Analysis](assets/screenshot2.png)
+
 ---
 
 ## ✨ Key Features
