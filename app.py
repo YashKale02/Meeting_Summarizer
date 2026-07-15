@@ -387,6 +387,36 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700 !important;
     font-family: 'Outfit', sans-serif !important;
 }
+.tag-positive {
+    background: #e6fcf5 !important;
+    color: #059669 !important;
+    border: 2px solid #059669 !important;
+    padding: 2px 8px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    font-family: 'Outfit', sans-serif !important;
+}
+.tag-neutral {
+    background: #f1f5f9 !important;
+    color: #64748b !important;
+    border: 2px solid #64748b !important;
+    padding: 2px 8px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    font-family: 'Outfit', sans-serif !important;
+}
+.tag-negative {
+    background: #fee2e2 !important;
+    color: #ef4444 !important;
+    border: 2px solid #ef4444 !important;
+    padding: 2px 8px !important;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    font-family: 'Outfit', sans-serif !important;
+}
 
 /* Sidebar button text contrast fix */
 [data-testid="stSidebar"] button p,
@@ -725,9 +755,10 @@ else:
             st.rerun()
             
     # TAB SEGMENTATION
-    tab_dash, tab_transcript = st.tabs([
+    tab_dash, tab_transcript, tab_chat = st.tabs([
         "📊 Dashboard Overview",
-        "💬 Searchable Dialogue Transcript"
+        "💬 Searchable Dialogue Transcript",
+        "🤖 Ask AI (RAG Chat)"
     ])
     
     # -----------------------------------------------------------------
@@ -768,6 +799,124 @@ else:
                 </ul>
             </div>
             """, unsafe_allow_html=True)
+
+        # Key Decisions & Action Items Section
+        st.markdown("<br>", unsafe_allow_html=True)
+        col_decisions, col_actions = st.columns([1, 1])
+        
+        with col_decisions:
+            st.markdown("<h3>🎯 Key Decisions</h3>", unsafe_allow_html=True)
+            decisions = analysis.get("key_decisions", [])
+            if not decisions:
+                st.markdown("<p style='color: #64748b; font-family: Outfit;'>No key decisions identified yet.</p>", unsafe_allow_html=True)
+            else:
+                for dec in decisions:
+                    st.markdown(f"""
+                    <div class='decision-card'>
+                        📌 {dec}
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+        with col_actions:
+            st.markdown("<h3>✅ Action Items Checklist</h3>", unsafe_allow_html=True)
+            actions = analysis.get("action_items", [])
+            if not actions:
+                st.markdown("<p style='color: #64748b; font-family: Outfit;'>No action items identified yet.</p>", unsafe_allow_html=True)
+            else:
+                for i, act in enumerate(actions):
+                    task = act.get("task", "")
+                    owner = act.get("owner", "Unassigned")
+                    due = act.get("due_date", "N/A")
+                    priority = act.get("priority", "Medium")
+                    confidence = act.get("confidence", 100)
+                    
+                    priority_class = f"tag-{priority.lower()}"
+                    
+                    st.markdown(f"""
+                    <div class='action-row' style='border: 2px solid #2b221d; border-radius: 8px; padding: 12px; margin-bottom: 12px; box-shadow: 2px 2px 0px #2b221d; background: #ffffff;'>
+                        <div style='display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;'>
+                            <span class='{priority_class}'>{priority.upper()} PRIORITY</span>
+                            <span style='font-size: 11px; color: #64748b; font-family: Outfit;'>Confidence: {confidence}%</span>
+                        </div>
+                        <div style='font-family: Patrick Hand, cursive; font-size: 18px; margin: 6px 0; color: #2b221d;'>📌 {task}</div>
+                        <div style='display: flex; justify-content: space-between; font-size: 12px; color: #64748b; font-family: Outfit;'>
+                            <span>👤 Owner: <b>{owner}</b></span>
+                            <span>📅 Due: <b>{due}</b></span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+        # Topics Timeline & Speaker Analytics Section
+        st.markdown("<br><hr>", unsafe_allow_html=True)
+        col_timeline, col_analytics = st.columns([1, 1])
+        
+        with col_timeline:
+            st.markdown("<h3>📅 Discussion Timeline</h3>", unsafe_allow_html=True)
+            topics = analysis.get("topics", [])
+            if not topics:
+                st.markdown("<p style='color: #64748b; font-family: Outfit;'>No discussion segments identified yet.</p>", unsafe_allow_html=True)
+            else:
+                for top in topics:
+                    title = top.get("topic", "")
+                    summary = top.get("summary", "")
+                    start = top.get("start_time", "0:00")
+                    end = top.get("end_time", "0:00")
+                    
+                    st.markdown(f"""
+                    <div class='timeline-item'>
+                        <div class='timeline-time'>⏳ {start} - {end}</div>
+                        <div style='flex-grow: 1;'>
+                            <div class='timeline-title'>{title}</div>
+                            <div class='timeline-desc'>{summary}</div>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+        with col_analytics:
+            st.markdown("<h3>📊 Speaker Analytics</h3>", unsafe_allow_html=True)
+            analytics = analysis.get("speaker_analytics", [])
+            if not analytics:
+                st.markdown("<p style='color: #64748b; font-family: Outfit;'>No speaker analytics available.</p>", unsafe_allow_html=True)
+            else:
+                df = pd.DataFrame(analytics)
+                
+                # List each speaker sentiment and details
+                for i, row in df.iterrows():
+                    sp = row.get("speaker", "")
+                    words = row.get("words_spoken", 0)
+                    pct = row.get("talk_percentage", 0.0)
+                    sent = row.get("sentiment", "Neutral")
+                    
+                    sp_color = get_speaker_color(sp)
+                    sent_tag = f"tag-{sent.lower()}" if sent.lower() in ["positive", "neutral", "negative"] else "tag-neutral"
+                    
+                    st.markdown(f"""
+                    <div style='display: flex; justify-content: space-between; align-items: center; border: 2px solid #2b221d; border-radius: 8px; padding: 10px; margin-bottom: 8px; background: #ffffff; box-shadow: 2px 2px 0px #2b221d;'>
+                        <span style='font-family: Outfit; font-weight: 700; color: {sp_color};'>👤 {sp}</span>
+                        <span style='font-family: Outfit; font-size: 13px; color: #64748b;'>Words: <b>{words}</b> ({pct:.1f}%)</span>
+                        <span class='{sent_tag}' style='padding: 2px 6px; font-size: 10px;'>{sent.upper()}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Render pie chart for talk percentage
+                try:
+                    fig_pie = px.pie(
+                        df, 
+                        values='talk_percentage', 
+                        names='speaker', 
+                        title='Speaking Share (%)',
+                        color_discrete_sequence=px.colors.qualitative.Safe
+                    )
+                    fig_pie.update_layout(
+                        margin=dict(l=10, r=10, t=30, b=10),
+                        height=220,
+                        paper_bgcolor='rgba(0,0,0,0)',
+                        plot_bgcolor='rgba(0,0,0,0)',
+                        font=dict(family="Outfit", size=11, color="#2b221d")
+                    )
+                    st.plotly_chart(fig_pie, use_container_width=True)
+                except Exception as e:
+                    st.error(f"Could not render speaker chart: {e}")
 
     # -----------------------------------------------------------------
     # TAB 2: TRANSCRIPT
@@ -822,3 +971,54 @@ else:
                 st.markdown("<p style='color: #64748b; text-align: center; margin: 40px 0; font-family: Outfit, sans-serif;'>No transcript dialog segments match search term.</p>", unsafe_allow_html=True)
                 
             st.markdown("</div>", unsafe_allow_html=True)
+
+    # -----------------------------------------------------------------
+    # TAB 3: ASK AI (RAG CHAT)
+    # -----------------------------------------------------------------
+    with tab_chat:
+        with st.container(border=True):
+            st.markdown("<h4>🤖 Ask AI Meeting Assistant</h4>", unsafe_allow_html=True)
+            st.markdown("<p style='font-size: 14px; color: #64748b; margin-top:-5px;'>Query specific statements, decisions, or timeline events from this meeting.</p>", unsafe_allow_html=True)
+            
+            meeting_id = str(meeting["id"])
+            if meeting_id not in st.session_state.chat_history:
+                st.session_state.chat_history[meeting_id] = [
+                    {
+                        "role": "assistant",
+                        "content": f"Hello! I am your Meeting Intelligence assistant. Ask me anything about the meeting **'{meeting['title']}'**. I have access to the transcript and any uploaded supplementary document."
+                    }
+                ]
+                
+            # Display chat messages
+            for msg in st.session_state.chat_history[meeting_id]:
+                with st.chat_message(msg["role"]):
+                    st.markdown(msg["content"])
+            
+            # Input query
+            user_input = st.chat_input("What would you like to know about this meeting?")
+            if user_input:
+                # Add user query to chat history
+                st.session_state.chat_history[meeting_id].append({"role": "user", "content": user_input})
+                with st.chat_message("user"):
+                    st.markdown(user_input)
+                
+                # Fetch live or demo answer
+                api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY", "")
+                
+                with st.spinner("Analyzing meeting context..."):
+                    try:
+                        response_text = pipeline.answer_rag_query(
+                            query=user_input,
+                            transcript=transcript,
+                            analysis=analysis,
+                            context_doc_text=meeting.get("context_doc_text"),
+                            provider="Gemini",
+                            api_key=api_key,
+                            model_name=st.session_state.get("selected_model", "gemini-3.5-flash")
+                        )
+                    except Exception as e:
+                        response_text = f"An error occurred while calling the LLM: {str(e)}"
+                
+                # Add response to history
+                st.session_state.chat_history[meeting_id].append({"role": "assistant", "content": response_text})
+                st.rerun()

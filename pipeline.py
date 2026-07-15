@@ -38,6 +38,11 @@ class DialogueEntry(BaseModel):
 class MeetingAnalysis(BaseModel):
     summary: str = Field(description="3-5 sentence executive summary of the meeting.")
     objectives: List[str] = Field(description="Core goals/objectives of the meeting.")
+    key_decisions: List[str] = Field(description="Key decisions made during the meeting.")
+    action_items: List[ActionItem] = Field(description="Action items and tasks assigned during the meeting.")
+    topics: List[Topic] = Field(description="Outline of discussed topics with start and end times.")
+    speaker_analytics: List[SpeakerAnalytic] = Field(description="Speaker analytics containing words spoken, talk percentage, and overall sentiment.")
+
 
 class PipelineResult(BaseModel):
     transcript: List[DialogueEntry] = Field(description="List of speaker-separated dialogue entries.")
@@ -190,6 +195,10 @@ def run_gemini_pipeline(audio_path: str, api_key: str, model_name: str = "gemini
     3. Fill in the meeting intelligence report including:
        - An executive summary (summary).
        - Meeting objectives (objectives).
+       - Key decisions made during the meeting (key_decisions).
+       - Concrete action items / task list with owner, due date, priority, and confidence (action_items).
+       - High-level discussion topics timeline (topics).
+       - Speaker analytics: total words, percentage of talk time/words, and overall sentiment (speaker_analytics).
        
     Return the result strictly conforming to the JSON schema.
     """
@@ -255,6 +264,10 @@ def run_openai_pipeline(audio_path: str, api_key: str) -> dict:
     2. Extract meeting intelligence:
        - Summary: 3-5 sentence executive summary (summary).
        - Objectives: Key meeting objectives (objectives).
+       - Key decisions made during the meeting (key_decisions).
+       - Concrete action items / task list with owner, due date, priority, and confidence (action_items).
+       - High-level discussion topics timeline (topics).
+       - Speaker analytics: total words, percentage of talk time/words, and overall sentiment (speaker_analytics).
        
     You MUST respond strictly in the requested JSON schema format.
     """
